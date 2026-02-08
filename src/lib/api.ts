@@ -1,10 +1,10 @@
 import axios from "axios";
 
 // Base URL for Knowledge Base API
-const BASE_URL = "https://smart-grade-nexus.onrender.com";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://smart-grade-nexus.onrender.com";
 
 // Base URL for OCR API
-const OCR_BASE_URL = "https://ocr-processing-cxne.onrender.com";
+const OCR_BASE_URL = process.env.NEXT_PUBLIC_OCR_API_URL || "https://ocr-processing-cxne.onrender.com";
 
 export const api = axios.create({
     baseURL: BASE_URL,
