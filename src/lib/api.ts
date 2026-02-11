@@ -96,12 +96,19 @@ export const getBooks = async (): Promise<Book[]> => {
         subject: item.subject,
         board: item.board,
         school: item.school,
-        student_class: item.class || item.student_class, // Map 'class' from API to 'student_class'
+        student_class: item["class"] || item.student_class || item.class_level || item["class_level"],
         semester: item.semester,
     }));
 };
 
 export const ingestBook = async (formData: FormData) => {
+    // Backend expects 'class' instead of 'student_class'
+    const studentClass = formData.get("student_class");
+    if (studentClass) {
+        formData.append("class", studentClass);
+        // We keep 'student_class' as well just in case
+    }
+
     const response = await api.post("/api/v1/knowledge/ingest", formData, {
         headers: {
             "Content-Type": "multipart/form-data",

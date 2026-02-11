@@ -24,7 +24,7 @@ export function EvaluationResult({ result }: EvaluationResultProps) {
                         <div>
                             <CardTitle className="text-xl">Evaluation Result</CardTitle>
                             <div className="text-sm text-muted-foreground mt-1">
-                                {result.exam_details.subject} • Class {result.exam_details.class || result.exam_details.class_level} • {result.exam_details.board}
+                                {result.exam_details.subject} • Class {result.exam_details.class_level || result.exam_details.class} • {result.exam_details.board}
                             </div>
                         </div>
                         <div className="text-right">

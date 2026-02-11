@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ingestBook } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
@@ -17,7 +17,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Cpu } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface IngestFormData {
     file: FileList;
@@ -27,11 +34,16 @@ interface IngestFormData {
     school?: string;
     student_class?: string;
     semester?: string;
+    ingestion_mode: string;
 }
 
 export function IngestModal() {
     const [open, setOpen] = useState(false);
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<IngestFormData>();
+    const { register, handleSubmit, reset, control, formState: { errors } } = useForm<IngestFormData>({
+        defaultValues: {
+            ingestion_mode: "ai"
+        }
+    });
     const queryClient = useQueryClient();
     const { toast } = useToast();
 
@@ -45,6 +57,7 @@ export function IngestModal() {
             if (data.school) formData.append("school", data.school);
             if (data.student_class) formData.append("student_class", data.student_class);
             if (data.semester) formData.append("semester", data.semester);
+            formData.append("ingestion_mode", data.ingestion_mode);
 
             return ingestBook(formData);
         },
@@ -138,6 +151,36 @@ export function IngestModal() {
                             <Label htmlFor="semester">Semester</Label>
                             <Input id="semester" {...register("semester")} placeholder="Optional" />
                         </div>
+                    </div>
+
+                    <div className="grid w-full items-center gap-1.5">
+                        <Label htmlFor="ingestion_mode">Ingestion Mode *</Label>
+                        <Controller
+                            name="ingestion_mode"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger id="ingestion_mode">
+                                        <SelectValue placeholder="Select mode" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="ai">
+                                            <div className="flex items-center gap-2">
+                                                <Cpu className="h-4 w-4 text-purple-500" />
+                                                <span>AI Mode (Smart Extraction)</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="standard">
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-4 w-4 text-blue-500" />
+                                                <span>Standard (Fast Ingest)</span>
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                     </div>
 
                     <DialogFooter>

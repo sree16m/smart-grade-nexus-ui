@@ -24,8 +24,7 @@ const SAMPLE_REQUEST: AnswerSheetInput = {
     exam_details: {
         subject: "Science",
         board: "CBSE",
-        class_level: 10,
-        class: 10
+        class_level: 10
     },
     responses: [
         {
@@ -112,7 +111,7 @@ export default function SubjectEvaluation() {
             ...data,
             exam_details: {
                 ...data.exam_details,
-                class: data.exam_details?.class || data.exam_details?.class_level
+                class_level: data.exam_details?.class_level || data.exam_details?.class
             },
             // Fix responses where text_primary might be "N/A" or a string
             responses: data.responses?.map((res: any) => ({
@@ -126,9 +125,9 @@ export default function SubjectEvaluation() {
             }))
         };
 
-        // Remove class_level if it exists to clean up
-        if (formattedData.exam_details.class_level) {
-            delete formattedData.exam_details.class_level;
+        // If backend returned 'class', ensure it's mapped to 'class_level' for consistency
+        if (formattedData.exam_details.class && !formattedData.exam_details.class_level) {
+            formattedData.exam_details.class_level = formattedData.exam_details.class;
         }
 
         setInputJson(JSON.stringify(formattedData, null, 2));
@@ -205,7 +204,7 @@ export default function SubjectEvaluation() {
                                     <TableRow key={sheet.id || Math.random()} className="hover:bg-muted/50">
                                         <TableCell className="font-medium">{sheet.student_id || "Unknown"}</TableCell>
                                         <TableCell>{sheet.exam_details?.subject || "N/A"}</TableCell>
-                                        <TableCell>{sheet.exam_details?.class_level || "N/A"}</TableCell>
+                                        <TableCell>{sheet.exam_details?.class_level || sheet.exam_details?.class || "N/A"}</TableCell>
                                         <TableCell>
                                             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200">Pending Evaluation</Badge>
                                         </TableCell>
