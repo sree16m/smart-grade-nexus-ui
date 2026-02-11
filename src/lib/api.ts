@@ -117,6 +117,16 @@ export const ingestBook = async (formData: FormData) => {
     return response.data;
 };
 
+export const getIngestStatus = async (bookName: string) => {
+    const response = await api.get(`/api/v1/knowledge/ingest/status/${bookName}`);
+    return response.data;
+};
+
+export const cancelIngest = async (bookName: string) => {
+    const response = await api.post(`/api/v1/knowledge/ingest/cancel/${bookName}`);
+    return response.data;
+};
+
 export const deleteBook = async (bookName: string) => {
     const response = await api.delete(`/api/v1/knowledge/books/${bookName}`);
     return response.data;
