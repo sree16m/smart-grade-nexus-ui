@@ -80,8 +80,8 @@ export function BookTable({ books }: BookTableProps) {
                 </TableHeader>
                 <TableBody>
                     {books.map((book) => (
-                        <TableRow key={book.book_name}>
-                            <TableCell className="font-medium">{book.book_name}</TableCell>
+                        <TableRow key={book.book_name || book.filename || book.id}>
+                            <TableCell className="font-medium">{book.book_name || book.filename || "No Name"}</TableCell>
                             <TableCell>
                                 {book.subject && <Badge variant="secondary">{book.subject}</Badge>}
                             </TableCell>
@@ -100,7 +100,7 @@ export function BookTable({ books }: BookTableProps) {
                                         <DialogHeader>
                                             <DialogTitle>Delete Book</DialogTitle>
                                             <DialogDescription>
-                                                Are you sure you want to delete <strong>{book.book_name}</strong>? This action cannot be undone.
+                                                Are you sure you want to delete <strong>{book.book_name || book.filename || "this book"}</strong>? This action cannot be undone.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <DialogFooter>

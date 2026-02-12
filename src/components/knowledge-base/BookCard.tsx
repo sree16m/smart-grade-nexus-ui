@@ -32,7 +32,7 @@ export function BookCard({ book }: BookCardProps) {
             queryClient.invalidateQueries({ queryKey: ["books"] });
             toast({
                 title: "Book deleted",
-                description: `${book.book_name} has been removed from the knowledge base.`,
+                description: `${book.book_name || book.filename} has been removed from the knowledge base.`,
             });
         },
         onError: (error) => {
@@ -46,7 +46,8 @@ export function BookCard({ book }: BookCardProps) {
     });
 
     const handleDelete = () => {
-        mutation.mutate(book.book_name);
+        const identifier = book.filename || book.book_name || "";
+        mutation.mutate(identifier);
     };
 
     // Generate a consistent gradient based on subject (simple hash-like logic or random fallback)
@@ -66,8 +67,8 @@ export function BookCard({ book }: BookCardProps) {
 
             <CardHeader className="pb-3">
                 <div className="flex justify-between items-start gap-2">
-                    <CardTitle className="text-xl leading-tight line-clamp-2" title={book.book_name}>
-                        {book.book_name}
+                    <CardTitle className="text-xl leading-tight line-clamp-2" title={book.book_name || book.filename || "Book"}>
+                        {book.book_name || book.filename}
                     </CardTitle>
                 </div>
                 <CardDescription className="flex flex-wrap gap-2 mt-2">
@@ -113,7 +114,7 @@ export function BookCard({ book }: BookCardProps) {
                         <DialogHeader>
                             <DialogTitle>Delete Book</DialogTitle>
                             <DialogDescription>
-                                Are you sure you want to delete <strong>{book.book_name}</strong>? This action cannot be undone.
+                                Are you sure you want to delete <strong>{book.book_name || book.filename}</strong>? This action cannot be undone.
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>

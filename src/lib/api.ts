@@ -24,6 +24,7 @@ export const ocrApi = axios.create({
 export interface Book {
     id?: string;
     book_name: string;
+    filename?: string;
     subject: string;
     class_level: number;
     academic_year: string;
@@ -131,16 +132,18 @@ export const getBooks = async (params?: {
     const response = await api.get("/api/v1/textbooks/", { params });
     const data = response.data;
 
-    if (Array.isArray(data)) {
-        return data;
-    } else if (data && Array.isArray(data.data)) {
-        return data.data;
-    }
-    return [];
+    const books = Array.isArray(data) ? data : (data && Array.isArray(data.data) ? data.data : []);
+
+    return books.map((b: any) => ({
+        ...b,
+        id: b.id || b._id,
+        book_name: b.book_name || b.filename || "Unnamed Book"
+    }));
 };
 
 export const ingestBook = async (formData: FormData) => {
     // Determine query params from formData for the new API structure
+    const book_name = formData.get("book_name") as string;
     const subject = formData.get("subject") as string;
     const class_level = formData.get("class_level") || formData.get("student_class");
     const academic_year = formData.get("academic_year") || "2025-26";
@@ -149,6 +152,7 @@ export const ingestBook = async (formData: FormData) => {
 
     const response = await api.post("/api/v1/textbooks/upload", formData, {
         params: {
+            book_name,
             subject,
             class_level,
             academic_year,
