@@ -9,6 +9,13 @@ import { Send, User, Bot, Loader2, Sparkles } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 
+// Rich Text & Math Rendering
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
 interface Message {
     role: "user" | "bot";
     content: string;
@@ -123,35 +130,58 @@ export function TextbookChat({ textbookId, bookName, externalQuery }: TextbookCh
                                 }`}>
                                 {msg.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                             </div>
-                            <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${msg.role === "user"
+                            <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm prose prose-sm dark:prose-invert ${msg.role === "user"
                                 ? "bg-primary text-primary-foreground rounded-tr-none"
                                 : "bg-muted/80 text-foreground rounded-tl-none border border-border/50"
                                 }`}>
-                                {msg.content}
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm, remarkMath]}
+                                    rehypePlugins={[rehypeKatex]}
+                                    components={{
+                                        p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+                                        ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-1">{children}</ul>,
+                                        ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-1">{children}</ol>,
+                                        li: ({ children }) => <li className="text-sm">{children}</li>,
+                                        code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                                        table: ({ children }) => <div className="overflow-x-auto my-3"><table className="w-full text-xs border-collapse border border-border">{children}</table></div>,
+                                        th: ({ children }) => <th className="border border-border bg-muted/50 px-2 py-1 text-left font-bold">{children}</th>,
+                                        td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
+                                        h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                                        h2: ({ children }) => <h2 className="text-md font-bold mb-2">{children}</h2>,
+                                        h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+                                    }}
+                                >
+                                    {msg.content}
+                                </ReactMarkdown>
 
                                 {msg.supplement && (
-                                    <div className="mt-2 pt-2 border-t border-primary/10">
-                                        <p className="text-[10px] uppercase tracking-wider font-bold mb-1 opacity-70 flex items-center gap-1">
+                                    <div className="mt-3 pt-3 border-t border-primary/10">
+                                        <p className="text-[10px] uppercase tracking-wider font-bold mb-1.5 opacity-70 flex items-center gap-1">
                                             <Sparkles className="h-2.5 w-2.5" />
                                             Academic Supplement
                                         </p>
-                                        <p className="text-xs opacity-90 leading-relaxed italic">
-                                            {msg.supplement}
-                                        </p>
+                                        <div className="text-xs opacity-90 leading-relaxed italic">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm, remarkMath]}
+                                                rehypePlugins={[rehypeKatex]}
+                                            >
+                                                {msg.supplement}
+                                            </ReactMarkdown>
+                                        </div>
                                     </div>
                                 )}
 
                                 {msg.citations && msg.citations.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-1">
+                                    <div className="mt-2.5 flex flex-wrap gap-1">
                                         {msg.citations.map((cite, i) => (
-                                            <span key={i} className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+                                            <span key={i} className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20 font-medium">
                                                 {cite}
                                             </span>
                                         ))}
                                     </div>
                                 )}
 
-                                <div className={`text-[10px] mt-1 opacity-50 ${msg.role === "user" ? "text-right" : "text-left"}`}>
+                                <div className={`text-[10px] mt-2 opacity-40 ${msg.role === "user" ? "text-right" : "text-left"}`}>
                                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </div>
                             </div>
