@@ -18,9 +18,10 @@ interface Message {
 interface TextbookChatProps {
     textbookId: string;
     bookName: string;
+    externalQuery?: { text: string; id: number } | null;
 }
 
-export function TextbookChat({ textbookId, bookName }: TextbookChatProps) {
+export function TextbookChat({ textbookId, bookName, externalQuery }: TextbookChatProps) {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: "bot",
@@ -51,19 +52,26 @@ export function TextbookChat({ textbookId, bookName }: TextbookChatProps) {
         },
     });
 
-    const handleSend = () => {
-        if (!input.trim() || mutation.isPending) return;
+    const handleSend = (textOverride?: string) => {
+        const textToSend = textOverride || input.trim();
+        if (!textToSend || mutation.isPending) return;
 
         const userMessage: Message = {
             role: "user",
-            content: input.trim(),
+            content: textToSend,
             timestamp: new Date(),
         };
 
         setMessages((prev) => [...prev, userMessage]);
-        setInput("");
-        mutation.mutate(input.trim());
+        if (!textOverride) setInput("");
+        mutation.mutate(textToSend);
     };
+
+    useEffect(() => {
+        if (externalQuery) {
+            handleSend(externalQuery.text);
+        }
+    }, [externalQuery]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -100,8 +108,8 @@ export function TextbookChat({ textbookId, bookName }: TextbookChatProps) {
                                 {msg.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                             </div>
                             <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${msg.role === "user"
-                                    ? "bg-primary text-primary-foreground rounded-tr-none"
-                                    : "bg-muted/80 text-foreground rounded-tl-none border border-border/50"
+                                ? "bg-primary text-primary-foreground rounded-tr-none"
+                                : "bg-muted/80 text-foreground rounded-tl-none border border-border/50"
                                 }`}>
                                 {msg.content}
                                 <div className={`text-[10px] mt-1 opacity-50 ${msg.role === "user" ? "text-right" : "text-left"}`}>

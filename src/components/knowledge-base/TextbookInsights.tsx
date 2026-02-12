@@ -7,9 +7,10 @@ import { BookOpen, School, Calendar, Layers, Info } from "lucide-react";
 
 interface TextbookInsightsProps {
     book: Book;
+    onAction: (query: string) => void;
 }
 
-export function TextbookInsights({ book }: TextbookInsightsProps) {
+export function TextbookInsights({ book, onAction }: TextbookInsightsProps) {
     return (
         <Card className="border-none shadow-none bg-transparent">
             <CardHeader className="px-0 pt-0">
@@ -64,13 +65,25 @@ export function TextbookInsights({ book }: TextbookInsightsProps) {
                 <div className="pt-4">
                     <p className="text-xs font-medium text-muted-foreground mb-3 px-1">Quick Actions</p>
                     <div className="flex flex-col gap-2">
-                        <Badge variant="outline" className="justify-start py-2 px-3 border-dashed hover:border-primary hover:text-primary transition-all cursor-pointer">
+                        <Badge
+                            variant="outline"
+                            className="justify-start py-2 px-3 border-dashed hover:border-primary hover:text-primary transition-all cursor-pointer"
+                            onClick={() => onAction("Can you provide a summary of all chapters in this textbook?")}
+                        >
                             Summarize Chapters
                         </Badge>
-                        <Badge variant="outline" className="justify-start py-2 px-3 border-dashed hover:border-primary hover:text-primary transition-all cursor-pointer">
+                        <Badge
+                            variant="outline"
+                            className="justify-start py-2 px-3 border-dashed hover:border-primary hover:text-primary transition-all cursor-pointer"
+                            onClick={() => onAction("What are the key definitions and core concepts covered in this book?")}
+                        >
                             Key Definitions
                         </Badge>
-                        <Badge variant="outline" className="justify-start py-2 px-3 border-dashed hover:border-primary hover:text-primary transition-all cursor-pointer">
+                        <Badge
+                            variant="outline"
+                            className="justify-start py-2 px-3 border-dashed hover:border-primary hover:text-primary transition-all cursor-pointer"
+                            onClick={() => onAction("Based on the textbook content, suggest 5 practice questions to test my knowledge.")}
+                        >
                             Practice Questions
                         </Badge>
                     </div>

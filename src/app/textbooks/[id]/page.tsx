@@ -7,10 +7,11 @@ import { TextbookInsights } from "@/components/knowledge-base/TextbookInsights";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2, BookOpen, ExternalLink, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { use } from "react";
+import { use, useState } from "react";
 
 export default function TextbookDetail({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const [pendingExternalQuery, setPendingExternalQuery] = useState<{ text: string; id: number } | null>(null);
 
     const { data: book, isLoading, isError, refetch } = useQuery({
         queryKey: ["textbook", id],
@@ -86,12 +87,19 @@ export default function TextbookDetail({ params }: { params: Promise<{ id: strin
             <main className="flex-1 flex overflow-hidden container mx-auto px-6 py-6 gap-6 max-w-[1600px]">
                 {/* Insights Sidebar (Left) */}
                 <aside className="w-80 flex flex-col gap-6 shrink-0 hidden lg:flex">
-                    <TextbookInsights book={book} />
+                    <TextbookInsights
+                        book={book}
+                        onAction={(query) => setPendingExternalQuery({ text: query, id: Date.now() })}
+                    />
                 </aside>
 
                 {/* Explorer Chat (Center) */}
                 <section className="flex-1 flex flex-col min-w-0">
-                    <TextbookChat textbookId={id} bookName={book.book_name} />
+                    <TextbookChat
+                        textbookId={id}
+                        bookName={book.book_name}
+                        externalQuery={pendingExternalQuery}
+                    />
                 </section>
             </main>
         </div>
