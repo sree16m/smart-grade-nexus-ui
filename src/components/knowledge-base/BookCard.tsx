@@ -76,9 +76,9 @@ export function BookCard({ book }: BookCardProps) {
                             {book.subject}
                         </Badge>
                     )}
-                    {book.student_class && (
+                    {book.class_level && (
                         <Badge variant="outline">
-                            Class {book.student_class}
+                            Class {book.class_level}
                         </Badge>
                     )}
                 </CardDescription>
@@ -91,8 +91,8 @@ export function BookCard({ book }: BookCardProps) {
                         {book.board || "N/A"}
                     </div>
                     <div className="p-2 bg-muted/50 rounded-md">
-                        <span className="block font-semibold text-foreground">School</span>
-                        {book.school || "N/A"}
+                        <span className="block font-semibold text-foreground">Year</span>
+                        {book.academic_year || "N/A"}
                     </div>
                     <div className="p-2 bg-muted/50 rounded-md col-span-2">
                         <span className="block font-semibold text-foreground">Semester</span>

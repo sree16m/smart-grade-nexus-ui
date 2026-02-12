@@ -73,7 +73,7 @@ export function BookTable({ books }: BookTableProps) {
                         <TableHead>Subject</TableHead>
                         <TableHead>Class</TableHead>
                         <TableHead>Board</TableHead>
-                        <TableHead>School</TableHead>
+                        <TableHead>Year</TableHead>
                         <TableHead>Semester</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -85,9 +85,9 @@ export function BookTable({ books }: BookTableProps) {
                             <TableCell>
                                 {book.subject && <Badge variant="secondary">{book.subject}</Badge>}
                             </TableCell>
-                            <TableCell>{book.student_class || "-"}</TableCell>
+                            <TableCell>{book.class_level || "-"}</TableCell>
                             <TableCell>{book.board || "-"}</TableCell>
-                            <TableCell>{book.school || "-"}</TableCell>
+                            <TableCell>{book.academic_year || "-"}</TableCell>
                             <TableCell>{book.semester || "-"}</TableCell>
                             <TableCell className="text-right">
                                 <Dialog>

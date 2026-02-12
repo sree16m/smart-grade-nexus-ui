@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL for Knowledge Base API
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://smart-grade-nexus.onrender.com";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://smart-grade-nexus-npza.onrender.com";
 
 // Base URL for OCR API
 const OCR_BASE_URL = process.env.NEXT_PUBLIC_OCR_API_URL || "https://ocr-processing-cxne.onrender.com";
@@ -22,94 +22,139 @@ export const ocrApi = axios.create({
 
 // Type Definitions
 export interface Book {
+    id?: string;
     book_name: string;
-    subject?: string;
+    subject: string;
+    class_level: number;
+    academic_year: string;
+    semester: number;
     board?: string;
-    school?: string;
-    student_class?: string;
-    semester?: string;
+    is_latest?: boolean;
 }
 
-export interface AnswerSheetInput {
-    answer_sheet_id?: string | null;
-    student_id?: string | null;
+export interface EvaluationRequest {
+    answer_sheet_id: string;
+    qp_id: string;
+    status: string;
     exam_details: {
+        board: string;
+        class_level: number;
         subject: string;
-        board?: string | null;
-        class?: number | null;
-        class_level?: number | null;
+        exam_code: string;
     };
+    student_details: {
+        name: string;
+        roll_no: string;
+        class: string;
+        section: string;
+        subject: string;
+        date: string;
+        school: string;
+    };
+    grading_summary: Record<string, any>;
     responses: Array<{
         q_no: number;
         question_context: {
             text_primary: {
                 en: string;
+                hi?: string | null;
                 regional?: string | null;
             };
+            text_regional?: {
+                en: string;
+                hi?: string | null;
+                regional?: string | null;
+            } | null;
             type: string;
-            max_marks?: number | null;
+            max_marks: number;
             options?: Array<{
                 id: string;
                 text: {
                     en: string;
+                    hi?: string | null;
                     regional?: string | null;
                 };
             }>;
         };
         student_answer: {
-            text: string;
+            text: string | null;
             diagram_description?: string | null;
             marks_awarded?: number | null;
             is_correct?: boolean | null;
-            feedback?: string | null;
+            ai_feedback?: string | null;
+            correct_answer?: string | null;
+            chapter?: string | null;
+            topic?: string | null;
+            page_number?: string | null;
+            remedial_suggestion?: string | null;
+            confidence_score?: number | null;
         };
-        topic_analysis?: object | null;
     }>;
 }
 
-export interface AnswerSheetOutput extends AnswerSheetInput { }
+export interface EvaluationResponse {
+    answer_sheet_id: string;
+    evaluated_at: string;
+    evaluation_summary: {
+        total_max_marks: number;
+        total_marks_awarded: number;
+        percentage: number;
+        overall_feedback: string | null;
+    };
+    responses: Array<{
+        q_no: number;
+        question_context: any;
+        student_answer: {
+            text: string | null;
+            diagram_description: string | null;
+            marks_awarded: number | null;
+            is_correct: boolean | null;
+            ai_feedback: string | null;
+            correct_answer: string | null;
+            chapter: string | null;
+            topic: string | null;
+            page_number: string | null;
+            remedial_suggestion: string | null;
+            confidence_score: number | null;
+        };
+    }>;
+}
 
 // API Functions
-export const getBooks = async (): Promise<Book[]> => {
-    const response = await api.get("/api/v1/knowledge/books");
+export const getBooks = async (params?: {
+    subject?: string;
+    class_level?: number;
+    academic_year?: string;
+    semester?: number;
+    is_latest?: boolean;
+}): Promise<Book[]> => {
+    const response = await api.get("/api/v1/textbooks/", { params });
     const data = response.data;
 
-    let booksData: any[] = [];
-
-    // Hahdle { status: "success", data: [...] } response
-    if (data && Array.isArray(data.data)) {
-        booksData = data.data;
-    } else if (Array.isArray(data)) {
-        // Handle direct array response
-        booksData = data;
-    } else if (typeof data === "object" && data !== null) {
-        // Handle object response (dictionary of filename -> metadata) - Legacy/Fallback
-        booksData = Object.entries(data).map(([filename, metadata]: [string, any]) => ({
-            book_name: metadata.book_name || filename,
-            ...metadata,
-        }));
+    if (Array.isArray(data)) {
+        return data;
+    } else if (data && Array.isArray(data.data)) {
+        return data.data;
     }
-
-    // Map API fields to Book interface
-    return booksData.map((item: any) => ({
-        book_name: item.book_name,
-        subject: item.subject,
-        board: item.board,
-        school: item.school,
-        student_class: item["class"] || item.student_class || item.class_level || item["class_level"],
-        semester: item.semester,
-    }));
+    return [];
 };
 
 export const ingestBook = async (formData: FormData) => {
-    // Backend expects 'class' instead of 'student_class'
-    const studentClass = formData.get("student_class");
-    if (studentClass) {
-        formData.append("class", studentClass);
-        // We keep 'student_class' as well just in case
-    }
+    // Determine query params from formData for the new API structure
+    const subject = formData.get("subject") as string;
+    const class_level = formData.get("class_level") || formData.get("student_class");
+    const academic_year = formData.get("academic_year") || "2025-26";
+    const semester = formData.get("semester") || "1";
+    const board = formData.get("board") || "CBSE";
 
-    const response = await api.post("/api/v1/knowledge/ingest", formData, {
+    const response = await api.post("/api/v1/textbooks/upload", formData, {
+        params: {
+            subject,
+            class_level,
+            academic_year,
+            semester,
+            board,
+        },
         headers: {
             "Content-Type": "multipart/form-data",
         },
@@ -117,30 +162,22 @@ export const ingestBook = async (formData: FormData) => {
     return response.data;
 };
 
-export const getIngestStatus = async (bookName: string) => {
-    const response = await api.get(`/api/v1/knowledge/ingest/status/${bookName}`);
+export const deleteBook = async (textbookId: string) => {
+    const response = await api.delete(`/api/v1/textbooks/${textbookId}`);
     return response.data;
 };
 
-export const cancelIngest = async (bookName: string) => {
-    const response = await api.post(`/api/v1/knowledge/ingest/cancel/${bookName}`);
+export const queryTextbook = async (textbookId: string, query: string) => {
+    const response = await api.post(`/api/v1/textbooks/${textbookId}/query`, null, {
+        params: { query },
+    });
     return response.data;
 };
 
-export const deleteBook = async (bookName: string) => {
-    const response = await api.delete(`/api/v1/knowledge/books/${bookName}`);
-    return response.data;
-};
-
-export const clearKnowledgeBase = async () => {
-    const response = await api.delete("/api/v1/knowledge/clear");
-    return response.data;
-};
-
-export const analyzeFullSheet = async (data: AnswerSheetInput) => {
+export const evaluateSheet = async (data: EvaluationRequest): Promise<EvaluationResponse> => {
     try {
-        const response = await api.post("/api/v1/intelligence/analyze-full-sheet", [data]);
-        return response.data[0];
+        const response = await api.post("/api/v1/intelligence/evaluate-sheet", data);
+        return response.data;
     } catch (error: any) {
         if (error.response) {
             console.error("API Validation Error Data:", JSON.stringify(error.response.data, null, 2));

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPendingAnswerSheets, AnswerSheetInput } from "@/lib/api";
+import { fetchPendingAnswerSheets, EvaluationRequest } from "@/lib/api";
 import {
     Dialog,
     DialogContent,
@@ -24,7 +24,7 @@ import { Loader2, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface OCRModalProps {
-    onSelect: (data: AnswerSheetInput) => void;
+    onSelect: (data: EvaluationRequest) => void;
 }
 
 export function OCRModal({ onSelect }: OCRModalProps) {

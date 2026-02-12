@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 export function BookList() {
     const { data: books, isLoading, isError, error, refetch } = useQuery({
         queryKey: ["books"],
-        queryFn: getBooks,
+        queryFn: () => getBooks(),
     });
 
     if (isLoading) {

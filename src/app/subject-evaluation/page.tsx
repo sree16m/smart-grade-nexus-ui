@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { analyzeFullSheet, AnswerSheetInput, AnswerSheetOutput, fetchPendingAnswerSheets } from "@/lib/api";
+import { evaluateSheet, EvaluationRequest, EvaluationResponse, fetchPendingAnswerSheets } from "@/lib/api";
 import { EvaluationEditor } from "@/components/subject-evaluation/EvaluationEditor";
 import { EvaluationResult } from "@/components/subject-evaluation/EvaluationResult";
 import { Button } from "@/components/ui/button";
@@ -19,23 +19,36 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { Play, FileText, Code, Loader2, ArrowLeft } from "lucide-react";
 
-const SAMPLE_REQUEST: AnswerSheetInput = {
-    student_id: "sample_student_01",
+const SAMPLE_REQUEST: EvaluationRequest = {
+    answer_sheet_id: "as_sample_001",
+    qp_id: "qp_sample_001",
+    status: "pending evaluation",
     exam_details: {
         subject: "Science",
         board: "CBSE",
-        class_level: 10
+        class_level: 10,
+        exam_code: "SCI10-001"
     },
+    student_details: {
+        name: "Sam Student",
+        roll_no: "101",
+        class: "10",
+        section: "A",
+        subject: "Science",
+        date: "2024-03-20",
+        school: "Example High School"
+    },
+    grading_summary: {},
     responses: [
         {
             q_no: 1,
             question_context: {
-                text_primary: { en: "Why is the sky blue?" },
+                text_primary: { en: "Explain the process of photosynthesis." },
                 type: "descriptive",
                 max_marks: 5
             },
             student_answer: {
-                text: "The sky is blue because of Rayleigh scattering."
+                text: "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll."
             }
         }
     ]
@@ -45,7 +58,7 @@ export default function SubjectEvaluation() {
     const [view, setView] = useState<"dashboard" | "editor">("dashboard");
     const [activeTab, setActiveTab] = useState("visual");
     const [inputJson, setInputJson] = useState(JSON.stringify(SAMPLE_REQUEST, null, 2));
-    const [result, setResult] = useState<AnswerSheetOutput | null>(null);
+    const [result, setResult] = useState<EvaluationResponse | null>(null);
     const [jsonError, setJsonError] = useState<string | null>(null);
     const { toast } = useToast();
 
@@ -57,7 +70,7 @@ export default function SubjectEvaluation() {
     });
 
     const mutation = useMutation({
-        mutationFn: analyzeFullSheet,
+        mutationFn: evaluateSheet,
         onSuccess: (data) => {
             setResult(data);
             setActiveTab("visual"); // Ensure we switch to visual tab on success
@@ -67,9 +80,9 @@ export default function SubjectEvaluation() {
             });
         },
         onError: (error: any) => {
-            console.error("Analysis Error:", error);
+            console.error("Evaluation Error:", error);
             // Construct a useful error message from 422 validation errors if available
-            let errorDesc = "Failed to grade the answer sheet.";
+            let errorDesc = "Failed to evaluate the answer sheet.";
             if (error.response?.data?.detail) {
                 // If detail is array (Pydantic), stringify it
                 if (Array.isArray(error.response.data.detail)) {
@@ -80,7 +93,7 @@ export default function SubjectEvaluation() {
             }
 
             toast({
-                title: "Analysis Failed",
+                title: "Evaluation Failed",
                 description: errorDesc,
                 variant: "destructive",
             });
@@ -106,29 +119,41 @@ export default function SubjectEvaluation() {
     };
 
     const handleLoadFromOCR = (data: any) => {
-        // Normalize data to match AnswerSheetInput interface
-        const formattedData = {
-            ...data,
-            exam_details: {
-                ...data.exam_details,
-                class_level: data.exam_details?.class_level || data.exam_details?.class
+        // Construct EvaluationRequest from OCR data
+        const formattedData: EvaluationRequest = {
+            answer_sheet_id: data.id || "manual_001",
+            qp_id: data.qp_id || "qp_001",
+            status: "pending evaluation",
+            student_details: {
+                name: data.student_name || "Unknown Student",
+                roll_no: data.roll_no || "N/A",
+                class: data.exam_details?.class || "N/A",
+                section: "A",
+                subject: data.exam_details?.subject || "N/A",
+                date: new Date().toISOString().split('T')[0],
+                school: "N/A"
             },
-            // Fix responses where text_primary might be "N/A" or a string
-            responses: data.responses?.map((res: any) => ({
-                ...res,
+            exam_details: {
+                subject: data.exam_details?.subject || "N/A",
+                board: data.exam_details?.board || "CBSE",
+                class_level: data.exam_details?.class_level || data.exam_details?.class || 10,
+                exam_code: data.exam_details?.exam_code || "N/A"
+            },
+            grading_summary: data.grading_summary || {},
+            responses: (data.responses || []).map((res: any) => ({
+                q_no: res.q_no,
                 question_context: {
                     ...res.question_context,
                     text_primary: typeof res.question_context?.text_primary === 'string'
                         ? { en: res.question_context.text_primary }
                         : res.question_context?.text_primary
+                },
+                student_answer: {
+                    ...res.student_answer,
+                    text: res.student_answer?.text || null
                 }
             }))
         };
-
-        // If backend returned 'class', ensure it's mapped to 'class_level' for consistency
-        if (formattedData.exam_details.class && !formattedData.exam_details.class_level) {
-            formattedData.exam_details.class_level = formattedData.exam_details.class;
-        }
 
         setInputJson(JSON.stringify(formattedData, null, 2));
         setResult(null);
@@ -202,7 +227,7 @@ export default function SubjectEvaluation() {
                             <TableBody>
                                 {sheets.map((sheet: any) => (
                                     <TableRow key={sheet.id || Math.random()} className="hover:bg-muted/50">
-                                        <TableCell className="font-medium">{sheet.student_id || "Unknown"}</TableCell>
+                                        <TableCell className="font-medium">{sheet.student_id || sheet.student_name || "Unknown"}</TableCell>
                                         <TableCell>{sheet.exam_details?.subject || "N/A"}</TableCell>
                                         <TableCell>{sheet.exam_details?.class_level || sheet.exam_details?.class || "N/A"}</TableCell>
                                         <TableCell>
