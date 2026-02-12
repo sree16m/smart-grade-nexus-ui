@@ -4,7 +4,8 @@ import { Book, deleteBook } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { Trash2, BookOpen, ExternalLink, Globe } from "lucide-react";
+import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -102,8 +103,13 @@ export function BookCard({ book }: BookCardProps) {
                 </div>
             </CardContent>
 
-            <CardFooter className="justify-between border-t bg-muted/20 py-3">
-                <span className="text-xs text-muted-foreground font-mono">PDF Document</span>
+            <CardFooter className="justify-between border-t bg-muted/20 py-3 gap-2">
+                <Link href={`/textbooks/${book.id}`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full text-xs font-semibold gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors h-8">
+                        <BookOpen className="h-3.5 w-3.5" />
+                        Open Explorer
+                    </Button>
+                </Link>
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">

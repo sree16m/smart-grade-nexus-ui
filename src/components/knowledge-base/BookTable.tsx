@@ -3,7 +3,8 @@
 import { Book, deleteBook } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { Trash2, BookOpen, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -89,10 +90,15 @@ export function BookTable({ books }: BookTableProps) {
                             <TableCell>{book.board || "-"}</TableCell>
                             <TableCell>{book.academic_year || "-"}</TableCell>
                             <TableCell>{book.semester || "-"}</TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right flex items-center justify-end gap-1">
+                                <Link href={`/textbooks/${book.id}`}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" title="Open Explorer">
+                                        <BookOpen className="h-4 w-4" />
+                                    </Button>
+                                </Link>
                                 <Dialog>
                                     <DialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </DialogTrigger>

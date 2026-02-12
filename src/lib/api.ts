@@ -166,6 +166,16 @@ export const ingestBook = async (formData: FormData) => {
     return response.data;
 };
 
+export const getTextbookDetails = async (textbookId: string): Promise<Book> => {
+    const response = await api.get(`/api/v1/textbooks/${textbookId}`);
+    const b = response.data;
+    return {
+        ...b,
+        id: b.id || b._id,
+        book_name: b.book_name || b.filename || "Unnamed Book"
+    };
+};
+
 export const deleteBook = async (textbookId: string) => {
     const response = await api.delete(`/api/v1/textbooks/${textbookId}`);
     return response.data;
