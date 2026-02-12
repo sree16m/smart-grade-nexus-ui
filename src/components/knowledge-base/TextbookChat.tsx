@@ -12,6 +12,8 @@ import { useToast } from "@/components/ui/use-toast";
 interface Message {
     role: "user" | "bot";
     content: string;
+    supplement?: string;
+    citations?: string[];
     timestamp: Date;
 }
 
@@ -38,17 +40,31 @@ export function TextbookChat({ textbookId, bookName, externalQuery }: TextbookCh
         onSuccess: (data) => {
             const botMessage: Message = {
                 role: "bot",
-                content: data.answer || data, // Handle different API response shapes
+                content: data.answer || (typeof data === 'string' ? data : "I'm sorry, I couldn't generate a clear answer."),
+                supplement: data.academic_supplement,
+                citations: data.citations,
                 timestamp: new Date(),
             };
             setMessages((prev) => [...prev, botMessage]);
         },
         onError: (error: any) => {
+            const is500 = error.response?.status === 500;
+            const errorMsg = is500
+                ? "The textbook indexing may have expired on the server. Please try re-uploading the book."
+                : (error.message || "Something went wrong while querying the textbook.");
+
             toast({
-                title: "Query Failed",
-                description: error.message || "Something went wrong while querying the textbook.",
+                title: is500 ? "Textbook Expired" : "Query Failed",
+                description: errorMsg,
                 variant: "destructive",
             });
+
+            const botErrorMessage: Message = {
+                role: "bot",
+                content: `⚠️ **Unable to process query.** ${errorMsg}`,
+                timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, botErrorMessage]);
         },
     });
 
@@ -112,6 +128,29 @@ export function TextbookChat({ textbookId, bookName, externalQuery }: TextbookCh
                                 : "bg-muted/80 text-foreground rounded-tl-none border border-border/50"
                                 }`}>
                                 {msg.content}
+
+                                {msg.supplement && (
+                                    <div className="mt-2 pt-2 border-t border-primary/10">
+                                        <p className="text-[10px] uppercase tracking-wider font-bold mb-1 opacity-70 flex items-center gap-1">
+                                            <Sparkles className="h-2.5 w-2.5" />
+                                            Academic Supplement
+                                        </p>
+                                        <p className="text-xs opacity-90 leading-relaxed italic">
+                                            {msg.supplement}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {msg.citations && msg.citations.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                        {msg.citations.map((cite, i) => (
+                                            <span key={i} className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+                                                {cite}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <div className={`text-[10px] mt-1 opacity-50 ${msg.role === "user" ? "text-right" : "text-left"}`}>
                                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </div>
