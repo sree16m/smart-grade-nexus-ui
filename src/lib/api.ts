@@ -31,6 +31,7 @@ export interface Book {
     semester: number;
     board?: string;
     is_latest?: boolean;
+    file_url?: string;
 }
 
 export interface EvaluationRequest {
@@ -137,7 +138,8 @@ export const getBooks = async (params?: {
     return books.map((b: any) => ({
         ...b,
         id: b.id || b._id,
-        book_name: b.book_name || b.filename || "Unnamed Book"
+        book_name: b.book_name || b.filename || "Unnamed Book",
+        file_url: b.file_url ? (b.file_url.startsWith("http") ? b.file_url : `${BASE_URL}${b.file_url}`) : undefined
     }));
 };
 
@@ -172,7 +174,8 @@ export const getTextbookDetails = async (textbookId: string): Promise<Book> => {
     return {
         ...b,
         id: b.id || b._id,
-        book_name: b.book_name || b.filename || "Unnamed Book"
+        book_name: b.book_name || b.filename || "Unnamed Book",
+        file_url: b.file_url ? (b.file_url.startsWith("http") ? b.file_url : `${BASE_URL}${b.file_url}`) : undefined
     };
 };
 

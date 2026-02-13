@@ -76,10 +76,19 @@ export default function TextbookDetail({ params }: { params: Promise<{ id: strin
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-semibold gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Source PDF
-                    </Button>
+                    {book.file_url ? (
+                        <a href={book.file_url} target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-semibold gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors" title="Open Source Textbook">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                Source PDF
+                            </Button>
+                        </a>
+                    ) : (
+                        <Button variant="outline" size="sm" disabled className="h-9 px-4 text-xs font-semibold gap-2 opacity-50 cursor-not-allowed">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            PDF Unavailable
+                        </Button>
+                    )}
                 </div>
             </header>
 
