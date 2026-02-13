@@ -28,12 +28,12 @@ export function BookCard({ book }: BookCardProps) {
     const { toast } = useToast();
 
     const mutation = useMutation({
-        mutationFn: deleteBook,
-        onSuccess: () => {
+        mutationFn: ({ id }: { id: string; name: string }) => deleteBook(id),
+        onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ["books"] });
             toast({
                 title: "Book deleted",
-                description: `${book.book_name || book.filename} has been removed from the knowledge base.`,
+                description: `${variables.name} has been removed from the knowledge base.`,
             });
         },
         onError: (error) => {
@@ -47,8 +47,10 @@ export function BookCard({ book }: BookCardProps) {
     });
 
     const handleDelete = () => {
-        const identifier = book.filename || book.book_name || "";
-        mutation.mutate(identifier);
+        mutation.mutate({
+            id: book.id!,
+            name: book.book_name || book.filename || "Book"
+        });
     };
 
     // Generate a consistent gradient based on subject (simple hash-like logic or random fallback)

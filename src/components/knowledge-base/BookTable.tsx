@@ -35,12 +35,12 @@ export function BookTable({ books }: BookTableProps) {
     const { toast } = useToast();
 
     const mutation = useMutation({
-        mutationFn: deleteBook,
+        mutationFn: ({ id }: { id: string; name: string }) => deleteBook(id),
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ["books"] });
             toast({
                 title: "Book deleted",
-                description: `${variables} has been removed from the knowledge base.`,
+                description: `${variables.name} has been removed from the knowledge base.`,
             });
         },
         onError: (error) => {
@@ -53,8 +53,8 @@ export function BookTable({ books }: BookTableProps) {
         },
     });
 
-    const handleDelete = (bookName: string) => {
-        mutation.mutate(bookName);
+    const handleDelete = (id: string, name: string) => {
+        mutation.mutate({ id, name });
     };
 
     if (books.length === 0) {
@@ -115,7 +115,7 @@ export function BookTable({ books }: BookTableProps) {
                                             </DialogClose>
                                             <Button
                                                 variant="destructive"
-                                                onClick={() => handleDelete(book.book_name)}
+                                                onClick={() => handleDelete(book.id!, book.book_name)}
                                                 disabled={mutation.isPending}
                                             >
                                                 {mutation.isPending ? "Deleting..." : "Delete"}
