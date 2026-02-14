@@ -140,19 +140,28 @@ export default function SubjectEvaluation() {
                 exam_code: data.exam_details?.exam_code || "N/A"
             },
             grading_summary: data.grading_summary || {},
-            responses: (data.responses || []).map((res: any) => ({
-                q_no: res.q_no,
-                question_context: {
-                    ...res.question_context,
-                    text_primary: typeof res.question_context?.text_primary === 'string'
-                        ? { en: res.question_context.text_primary }
-                        : res.question_context?.text_primary
-                },
-                student_answer: {
-                    ...res.student_answer,
-                    text: res.student_answer?.text || null
-                }
-            }))
+            responses: (data.responses || [])
+                .filter((res: any) =>
+                    (res.question_context?.text_primary) ||
+                    (res.student_answer?.text) ||
+                    (res.q_no !== undefined && res.q_no !== null)
+                )
+                .map((res: any, idx: number) => ({
+                    q_no: typeof res.q_no === 'number' ? res.q_no : (idx + 1),
+                    question_context: {
+                        ...res.question_context,
+                        max_marks: typeof res.question_context?.max_marks === 'number'
+                            ? res.question_context.max_marks
+                            : 1,
+                        text_primary: typeof res.question_context?.text_primary === 'string'
+                            ? { en: res.question_context.text_primary }
+                            : (res.question_context?.text_primary || { en: "" })
+                    },
+                    student_answer: {
+                        ...res.student_answer,
+                        text: res.student_answer?.text || ""
+                    }
+                }))
         };
 
         setInputJson(JSON.stringify(formattedData, null, 2));
